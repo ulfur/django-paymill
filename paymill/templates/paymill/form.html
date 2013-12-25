@@ -1,0 +1,52 @@
+	<!--PAYMILL CODE-->
+	
+	<script type="text/javascript"> var PAYMILL_PUBLIC_KEY = '{{paymill_key}}'; </script>
+	<script type="text/javascript" charset="utf-8" src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+	<script type="text/javascript" src="https://bridge.paymill.com/"></script>
+	
+
+	<input type="hidden" name="payment_amount" value="{{amount}}">
+	<input type="hidden" name="payment_currency" value="{{currency}}">
+	<input type="hidden" name="payment_description" value="{{description}}">
+	<input type="hidden" name="next" value="{{next}}">
+	<div class="payment-errors"></div>
+	<ul>
+		{{paymill_form.as_ul}}
+	</ul>
+	
+	<script type="text/javascript" charset="utf-8">
+		function PaymillResponseHandler(error, result) {
+			if (error) {
+				// Shows the error above the form
+				$(".payment-errors").text(error.apierror);
+				$("form input[type=submit]").removeAttr("disabled");
+			} else {
+				var form = $("form");
+				// Output token
+				var token = result.token;
+				// Insert token into form in order to submit to server
+				form.append("<input type='hidden' name='paymillToken' value='" + token + "'/>");
+				form.unbind();
+				form.submit();
+			}
+		}
+
+		$(function(){
+			$("form").submit( function(event) {
+				// Deactivate submit button to avoid further clicks
+				$('form input[type=submit]').attr("disabled", "disabled");
+				paymill.createToken({
+					number: $('.card-number').val(),			// required, ohne Leerzeichen und Bindestriche
+					exp_month: $('.card-expiry-month').val(),   // required
+					exp_year: $('.card-expiry-year').val(),     // required, vierstellig z.B. "2016"
+					cvc: $('.card-cvc').val(),                  // required
+					amount_int: $('.card-amount-int').val(),    // required, integer, z.B. "15" für 0,15 Euro 
+					currency: $('.card-currency').val(),		// required, ISO 4217 z.B. "EUR" od. "GBP"
+					cardholder: $('.card-holdername').val()		// optional
+				}, PaymillResponseHandler);						// Info dazu weiter unten
+		    return false;
+		  });
+		
+		});
+	</script>
+	<!--PAYMILL CODE ENDS-->
