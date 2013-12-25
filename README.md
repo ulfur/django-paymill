@@ -6,6 +6,7 @@ django-paymill is a django app for easily integrating Paymill as a payment gatew
 django-paymill requires [pymill](https://github.com/kliment/pymill) and as a resulting dependency [Requests](http://docs.python-requests.org/en/latest/)
 
 Simply install the app and add it to your INSTALLED_APPS:
+
 '''INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
@@ -18,6 +19,7 @@ Simply install the app and add it to your INSTALLED_APPS:
 )'''
 
 Then add your Paymill public and private keys to settings:
+
 '''PAYMILL_PRIVATE_KEY = ''
 PAYMILL_PUBLIC_KEY = ''
 '''
