@@ -136,29 +136,8 @@ class TransactionAdmin( admin.ModelAdmin ):
         self.message_user(request, "%s successfully refunded" % message)	
     refund.short_description = 'Refund transaction'
 
-class WebhookAdmin( admin.ModelAdmin ):
-    list_display = ('url', 'event_type', 'livemode', 'external_ref', 'created_at')
-    fieldsets = (
-            (None, {
-                'fields': (
-                    'url',
-                    'event_type',
-                    'livemode'
-                )
-            }),
-            ('Advanced', {
-                'fields': (
-                    'external_ref',
-                    ('created_at', 'updated_at'),
-                ),
-                'classes': ('collapse','collapse-closed'),
-            })
-    )
-    readonly_fields = ( 'url', 'external_ref','created_at','updated_at', )
-    
 admin.site.register( Transaction, TransactionAdmin )
 admin.site.register( Client, ClientAdmin )
 admin.site.register( Payment, PaymentAdmin )
 admin.site.register( Offer, OfferAdmin )
 admin.site.register( Subscription )
-admin.site.register( Webhook, WebhookAdmin )

@@ -31,4 +31,3 @@ class Command(BaseCommand):
         self.update_from_class( Client )
         self.update_from_class( Offer )
         self.update_from_class( Subscription )
-        self.update_from_class( Webhook )
