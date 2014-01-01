@@ -1,5 +1,6 @@
 #encoding: utf-8
 
+import json
 import pymill
 
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
@@ -11,9 +12,8 @@ from django.views.generic import View
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
-from . import signals
-
-from .models import Transaction, Webhook
+from .signal import get_signal
+from .models import *
 
 class PaymillTransactionView( View ):
 
@@ -51,10 +51,36 @@ class WebhookView( View ):
         
     def post( self, request, *args, **kwargs ):
         print request.body
-#       Process Paymill objects
+        event = json.loads( request.body )
 
-#       signal = getattr( signals, event_name )
-#       signal.send( sender=self, event=event )
+        #Process Paymill objects
+        f = getattr( self, event['event_type'].replace('.','_'), None )
+        if f:
+            f( event )
+            
+        signal = get_signal( event['event_type'] )
+        signal.send( sender=self, event=event )
         
         return HttpResponse( )
 
+    def client_updated( self, event ):
+        Client.update_or_create( event['event_resource'] )
+'''
+    {
+        "event":{
+            "event_type":"client.updated",
+            "event_resource":{
+                "id":"client_cdcc9709ffcef07f9286",
+                "email":"ulfurk@ulfurk.com",
+                "description":"Ulfur Kristjansson (Are we cooking with gas?)",
+                "created_at":1388418081,
+                "updated_at":1388831265,
+                "app_id":null,
+                "payment":[],
+                "subscription":null
+            },
+            "created_at":1388831265,
+            "app_id":null
+        }
+    }
+'''

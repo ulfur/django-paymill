@@ -4,7 +4,7 @@ from datetime import datetime
 from django.db import models
 from django.conf import settings
 
-from pymill import Pymill
+from pymill import Pymill, PaymillObject
 
 class PaymillManager( models.Manager ):
     def create_object( self, *args, **kwargs ):
@@ -30,7 +30,11 @@ class PaymillModel( models.Model ):
         return self.external_ref
 
     def _update_from_paymill_object( self, ob ):
-        for k, v in ob.__dict__.items():
+        
+        if issubclass( ob, PaymillObject ):
+            ob = ob.__dict__
+            
+        for k, v in ob.items():
             k = 'external_ref' if k == 'id' else k
             if hasattr( self, k ) and v is not None:
                 ftype = type( self._meta.get_field( k ) )
