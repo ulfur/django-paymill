@@ -12,7 +12,7 @@ from django.views.generic import View
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
-from .signal import get_signal
+from .signals import get_signal
 from .models import *
 
 class PaymillTransactionView( View ):
