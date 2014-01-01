@@ -16,18 +16,12 @@ class Payment( PaymillModel ):
     card_holder = models.CharField( max_length=30, blank=True, null=True )
     last4 = models.CharField( max_length=4 )
 
-    def __create_paymill_object( self, token, client=None ):
-        return self.paymill.newcard( token, client = client.paymill_id if client else None  )
-    
-    @classmethod
-    def create( cls, *args, **kwargs ):
-        o = super(Payment, cls).create(*args, **kwargs)
-        o.client = kwargs.get( 'client', None )
-        return o
-        
-    def delete( self, *args, **kwargs ):
-        self.paymill.delcard( self.external_ref )
-        return super(Payment, self).delete(*args, **kwargs)
+    def _create_paymill_object( self, token, client=None ):
+        self.client = client
+        return self.paymill.new_card( token, client = client.paymill_id if client else None  )
 
+    def _delete_paymill_object( self, *args, **kwargs ):
+        self.paymill.delete_card( self.paymill_id )
+    
     def __unicode__( self ):
         return u'%s - %s (**** ***** **** %s)'%(self.card_holder,self.card_type, self.last4)

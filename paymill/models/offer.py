@@ -13,16 +13,21 @@ class Offer( PaymillModel ):
     interval = models.CharField( max_length=20, choices=INTERVAL_CHOICES )
     trial_period_days = models.PositiveIntegerField( blank=True )
 
-    def __create_paymill_object( self, name, amount, interval='1 MONTH', currency='EUR' ):
-        return self.paymill.newoffer( name=name, amount=amount, interval=interval, currency=currency )
+    def _create_paymill_object( self, name, amount, interval='1 MONTH', currency='EUR' ):
+        return self.paymill.new_offer( amount, name=name, interval=interval, currency=currency )
+
+    def _delete_paymill_object( self ):
+        for subscription in self.subscriptions.all( ):
+            subscription.cancel( )
+        self.paymill.delete_offer( self.paymill_id )
             
     def save( self, *args, **kwargs ):
-        if self.external_ref:
-            res = self.create_paymill_object( self.name, self.amount, interval=self.interval, currency=self.currency )
-        else:
-            res = self.paymill.newoffer( amount=self.amount, interval=self.interval, currency=self.currency, name=self.name )
-        self.update_from_paymilldata( res['data'] )
+        if not self.paymill_id:
+            ob = self._create_paymill_object( self.name, self.amount, interval=self.interval, currency=self.currency )
+            self._update_from_paymill_object( ob )
         return super(Offer, self).save(*args, **kwargs)
         
     def subscribe( self, client ):
-        return Subscription.create( client, self )
+        s = self.subscriptions.create_object( client, self )
+        s.save( )
+        return s

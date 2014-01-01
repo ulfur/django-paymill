@@ -2,11 +2,15 @@
 
 import pymill
 
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
+from django.core.exceptions import ObjectDoesNotExist
+
 from django.conf import settings
 from django.views.generic import View
 
-from .models import Transaction
+from . import signals
+
+from .models import Transaction, Webhook
 
 class PaymillTransactionView( View ):
 
@@ -35,3 +39,15 @@ class PaymillAddCardView( View ):
         client.add_payment( request.POST.get('paymillToken') )
 
         return HttpResponseRedirect( next  )
+
+class WebhookView( View ):
+
+    def post( self, request, *args, **kwargs ):
+        print request.POST
+#       Process Paymill objects
+
+#       signal = getattr( signals, event_name )
+#       signal.send( sender=self, event=event )
+        
+        return HttpResponse( )
+

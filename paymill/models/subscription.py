@@ -16,30 +16,28 @@ class Subscription( PaymillModel ):
     next_capture_at = models.DateTimeField( )
     canceled_at = models.DateTimeField( blank=True, null=True )
 
-    offer  = models.ForeignKey( Offer )
-    client = models.ForeignKey( Client )
-    payment = models.ForeignKey( Payment )
+    offer  = models.ForeignKey( Offer, related_name='subscriptions' )
+    client = models.ForeignKey( Client, related_name='subscriptions' )
+    payment = models.ForeignKey( Payment, related_name='subscriptions' )
 
-    def __create_paymill_object( self, client, offer ):
+    def _create_paymill_object( self, client, offer, start_at=None ):
         payment = client.get_payment()
-        return self.paymill.newsub( client.paymill_id, offer.paymill_id, payment.paymill_id )
-        
+        return self.paymill.new_subscription( client.paymill_id, offer.paymill_id, payment.paymill_id, start_at=start_at )
+
+    def _delete_paymill_object( self, *args, **kwargs ):
+        self.cancel( )
+
     @classmethod
     def create( cls, client, offer ):
-        o = super(Subscription, cls).create(client, offer)
+        i = super(Subscription, cls).create( client, offer )
         
-        o.offer = offer
-        o.client = client
-        o.payment = client.get_payment( )
-        o.save( )
+        i.offer = offer
+        i.client = client
+        i.payment = client.get_payment( )
         
-        return o
+        return i
 
     def cancel( self ):
-        self.paymill.cancelsubnow( self.external_ref )
-        self.canceled_at = datetime.now()
-        self.save()
-
-    def delete( self, *args, **kwargs ):
-        self.cancel( )
-        return super(Subscription, self).delete(*args, **kwargs)
+        self.paymill.cancelsubnow( self.paymill_id )
+        self.canceled_at = datetime.now( )
+        self.save( )

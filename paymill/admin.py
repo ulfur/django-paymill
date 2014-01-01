@@ -7,34 +7,119 @@ from django.conf import settings
 
 from .models import *
 
+class ClientAdmin( admin.ModelAdmin ):
+    list_display = ('email', 'description', 'external_ref', 'created_at')
+    search_fields = ( 'email', )
+    fieldsets = (
+            (None, {
+                'fields': (
+                    'email',
+                    'description',
+                )
+            }),
+            ('Advanced', {
+                'fields': (
+                    'external_ref',
+                    ('created_at', 'updated_at'),
+                ),
+                'classes': ('collapse','collapse-closed'),
+            })
+    )
+    readonly_fields = (
+                'email',
+                'description',
+                
+                'external_ref','created_at','updated_at',
+    )
+
+class PaymentAdmin( admin.ModelAdmin ):
+    list_display = ('card_holder', 'last4', 'external_ref', 'created_at')
+    search_fields = ( 'card_holder', 'last4' )
+    fieldsets = (
+            (None, {
+                'fields': (
+                    ('client', 'type'),
+                    ('card_type', 'last4'),
+                    ('expire_month', 'expire_year'),
+                    ('card_holder', 'country'),
+                )
+            }),
+            ('Advanced', {
+                'fields': (
+                    'external_ref',
+                    ('created_at', 'updated_at'),
+                ),
+                'classes': ('collapse','collapse-closed'),
+            })
+    )
+    readonly_fields = (
+                'type',
+                'card_type', 'last4',
+                'expire_month', 'expire_year',
+                'card_holder', 'country',
+                
+                'external_ref', 'client', 'created_at', 'updated_at',
+    )
+
+class OfferAdmin( admin.ModelAdmin ):
+    
+    list_display = ('name', 'amount', 'currency', 'interval', 'external_ref', 'created_at')
+    search_fields = ( 'name', )
+    fieldsets = (
+            (None, {
+                'fields': (
+                    'name',
+                    ('amount', 'currency'),
+                    ('interval', 'trial_period_days'),
+                )
+            }),
+            ('Advanced', {
+                'fields': (
+                    'external_ref',
+                    ('created_at', 'updated_at'),
+                ),
+                'classes': ('collapse','collapse-closed'),
+            })
+    )
+    readonly_fields = ( 'external_ref', 'created_at', 'updated_at', )
+
 class TransactionAdmin( admin.ModelAdmin ):
-    date_hierarchy = 'created_at'
     list_filter = ( 'status', 'refunded' )
     list_display = ( 'payment', 'status', 'origin_amount', 'currency', 'refunded' )
     exclude = ( 'livemode', 'amount', 'client' )
     actions = ['refund']
-    fields = ( 
-                        ('status', 'response_code'),
-                        ('created_at', 'updated_at'),
-                        ('origin_amount', 'currency'),
-                        'payment',
-                        'external_ref',
-                        'description',
-                        ('refunded','refunded_at') 
-                    )
+    fieldsets = (
+            (None, {
+                'fields': (
+                    ('status', 'response_code'),
+                    ('origin_amount', 'currency'),
+                    'payment','description',
 
+                )
+            }),
+            ('Refund', {
+                'fields': (
+                    ('refunded','refunded_at'),
+                )
+            }),
+            ('Advanced', {
+                'fields': (
+                    'external_ref',
+                    ('created_at', 'updated_at'),
+                ),
+                'classes': ('collapse','collapse-closed'),
+            })
+    )
     readonly_fields = ( 
                         'status', 
                         'response_code', 
-                        'created_at',
-                        'updated_at',
                         'origin_amount',
                         'currency',
                         'payment',
-                        'external_ref',
                         'description', 
-                        'refunded',
-                        'refunded_at'
+                        'refunded', 'refunded_at',
+
+                        'external_ref', 'created_at', 'updated_at',                        
                     )
 
     def refund( self, request, queryset ):
@@ -51,8 +136,29 @@ class TransactionAdmin( admin.ModelAdmin ):
         self.message_user(request, "%s successfully refunded" % message)	
     refund.short_description = 'Refund transaction'
 
+class WebhookAdmin( admin.ModelAdmin ):
+    list_display = ('url', 'event_type', 'livemode', 'external_ref', 'created_at')
+    fieldsets = (
+            (None, {
+                'fields': (
+                    'url',
+                    'event_type',
+                    'livemode'
+                )
+            }),
+            ('Advanced', {
+                'fields': (
+                    'external_ref',
+                    ('created_at', 'updated_at'),
+                ),
+                'classes': ('collapse','collapse-closed'),
+            })
+    )
+    readonly_fields = ( 'url', 'external_ref','created_at','updated_at', )
+    
 admin.site.register( Transaction, TransactionAdmin )
-
-admin.site.register( Client )
-admin.site.register( Payment )
-admin.site.register( WebHook )
+admin.site.register( Client, ClientAdmin )
+admin.site.register( Payment, PaymentAdmin )
+admin.site.register( Offer, OfferAdmin )
+admin.site.register( Subscription )
+admin.site.register( Webhook, WebhookAdmin )

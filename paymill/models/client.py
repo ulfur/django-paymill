@@ -8,24 +8,28 @@ class Client( PaymillModel ):
     description = models.TextField( null=True, blank=True )
     email = models.EmailField( null=True, blank=True  )
 
-    def __create_paymill_object( self, email, description ):
-        return self.paymill.newclient( email, description )
+    def _create_paymill_object( self, email, description ):
+        '''Creates a new Client on the Paymill servers and returns the json object'''
+        return self.paymill.new_client( email, description )
 
-    def add_payment( self, token ):
-        p = Payment.create( token, client=self )
+    def _delete_paymill_object( self ):
+        for sub in self.subscriptions.all( ): #We need to cancel all subscriptions before we can delete the client
+            sub.cancel( )
+        for payment in self.payments.all( ): #Let's also remove all his cards
+            payment.delete( )
+        self.paymill.delete_client( self.paymill_id ) #Finally we can safely delete the client
 
-    def delete( self, delete_cards=True, *args, **kwargs ):
-        for payment in self.payments.all():
-            payment.delete()
-        self.paymill.delclient( self.external_ref )
-        return super(Client, self).delete(*args, **kwargs)
-
-    def get_payment( self ):
-        pms = self.payments.all()
-        if len(pms)>0:
-            return pms[0]
+    def get_payment( self, i=0 ):
+        pms = self.payments.all( )
+        if len(pms)>i:
+            return pms[i]
         return None
 
+    def add_payment( self, token ):
+        p = self.payments.create_object( token, self )
+        p.save( )
+        return p
+        
     @property
     def has_payment( self ):
         return self.get_payment() is not None
