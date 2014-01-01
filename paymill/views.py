@@ -50,7 +50,7 @@ class WebhookView( View ):
         return super(WebhookView, self).dispatch(*args, **kwargs)
         
     def post( self, request, *args, **kwargs ):
-        print request.POST
+        print request.raw_post_data
 #       Process Paymill objects
 
 #       signal = getattr( signals, event_name )
