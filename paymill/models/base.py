@@ -31,14 +31,16 @@ class PaymillModel( models.Model ):
 
     def _update_from_paymill_object( self, ob ):
         ob = paymill_dict( ob )
+        updated = False
         for k, v in ob.items():
             k = 'external_ref' if k == 'id' else k
             if hasattr( self, k ) and v is not None:
                 ftype = type( self._meta.get_field( k ) )
                 if ftype == models.DateTimeField:
                     v = datetime.utcfromtimestamp( v )
+                updated = updated or getattr(self,k) != v
                 setattr( self, k, v )
-        return self
+        return updated
 
     def _create_paymill_object( self, *args, **kwargs ):
         raise NotImplementedError( '_create_paymill_object not implemented for this class' )
