@@ -48,7 +48,16 @@ class PaymillModel( models.Model ):
     def delete( self, *args, **kwargs ):
         self._delete_paymill_object( )
         return super(PaymillModel, self).delete(*args, **kwargs)
-        
+    
+    @classmethod
+    def update_or_create( cls, ob ):
+        try:
+            o = cls.objects.get( externa_ref=ob.id )
+        except:
+            o = cls( )
+        o._update_from_paymill_object( ob )
+        return o
+
     @classmethod
     def create( cls, *args, **kwargs ):
         i = cls()

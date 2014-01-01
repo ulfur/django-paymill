@@ -8,6 +8,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.views.generic import View
 
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+
 from . import signals
 
 from .models import Transaction, Webhook
@@ -42,6 +45,10 @@ class PaymillAddCardView( View ):
 
 class WebhookView( View ):
 
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super(WebhookView, self).dispatch(*args, **kwargs)
+        
     def post( self, request, *args, **kwargs ):
         print request.POST
 #       Process Paymill objects

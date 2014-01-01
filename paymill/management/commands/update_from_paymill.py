@@ -19,11 +19,7 @@ class Command(BaseCommand):
             try:
                 objects = f( )
                 for o in objects:
-                    try:
-                        i = klass.objects.get( external_ref=o.id )
-                    except:
-                        i = klass( )
-                    i._update_from_paymill_object( o )
+                    i = klass.update_or_create( o )
                     i.save( )
                 print ' DONE'
                 return
