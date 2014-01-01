@@ -50,21 +50,22 @@ class WebhookView( View ):
         return super(WebhookView, self).dispatch(*args, **kwargs)
         
     def post( self, request, *args, **kwargs ):
-        print request.body
-        event = json.loads( request.body )
-
+        event = json.loads( request.body )['event'] #TODO: Check for edge cases and handle errors
+        event_name = event['event_type'].replace('.','_')
+        
         #Process Paymill objects
-        f = getattr( self, event['event_type'].replace('.','_'), None )
+        f = getattr( self, event_name, None )
         if f:
             f( event )
-            
-        signal = get_signal( event['event_type'] )
+        
+        signal = get_signal( event_name )
         signal.send( sender=self, event=event )
         
         return HttpResponse( )
 
     def client_updated( self, event ):
-        Client.update_or_create( event['event_resource'] )
+        c = Client.update_or_create( event['event_resource'] )
+        c.save( )
 '''
     {
         "event":{

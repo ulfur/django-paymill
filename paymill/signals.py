@@ -27,5 +27,5 @@ client_updated              = django.dispatch.Signal( providing_args=('event',) 
 
 def get_signal( name ):
     module = sys.modules[__name__]
-    event_name = event.replace('.','_')
+    event_name = name.replace( '.', '_' )
     return getattr( module, event_name, None )

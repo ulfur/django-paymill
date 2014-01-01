@@ -6,11 +6,13 @@ from django.conf import settings
 
 from pymill import Pymill, PaymillObject
 
-class PaymillManager( models.Manager ):
-    def create_object( self, *args, **kwargs ):
-        i = self.create( *args, **kwargs )
-        return i
-        
+def paymill_dict( ob ):
+    if isinstance( ob, PaymillObject ):
+        return ob.__dict__
+    elif isinstance( ob, dict ):
+        return ob
+    raise TypeError( 'paymill_dict expects either PaymillObject or dict' )
+
 class PaymillModel( models.Model ):
 
     paymill = Pymill( settings.PAYMILL_PRIVATE_KEY )
@@ -18,8 +20,6 @@ class PaymillModel( models.Model ):
     external_ref = models.CharField( max_length=100, db_index=True )
     created_at = models.DateTimeField( )
     updated_at = models.DateTimeField( )
-
-    objects = PaymillManager( )
     
     class Meta:
         app_label = 'paymill'
@@ -30,10 +30,7 @@ class PaymillModel( models.Model ):
         return self.external_ref
 
     def _update_from_paymill_object( self, ob ):
-        
-        if issubclass( ob, PaymillObject ):
-            ob = ob.__dict__
-            
+        ob = paymill_dict( ob )
         for k, v in ob.items():
             k = 'external_ref' if k == 'id' else k
             if hasattr( self, k ) and v is not None:
@@ -55,8 +52,9 @@ class PaymillModel( models.Model ):
     
     @classmethod
     def update_or_create( cls, ob ):
+        ob = paymill_dict( ob )
         try:
-            o = cls.objects.get( externa_ref=ob.id )
+            o = cls.objects.get( external_ref=ob['id'] )
         except:
             o = cls( )
         o._update_from_paymill_object( ob )
@@ -64,8 +62,7 @@ class PaymillModel( models.Model ):
 
     @classmethod
     def create( cls, *args, **kwargs ):
-        i = cls()
-
+        i = cls( )
         ob = i._create_paymill_object( *args, **kwargs )
         i._update_from_paymill_object( ob )
         
