@@ -1,7 +1,8 @@
-import requests
+import pickle, json, requests
 
 
 url = 'http://localhost:8080/webhooks'
+event = pickle.load( open('test_event.pckl', 'rb') )
 
 body = '''{
     "event":{
@@ -21,5 +22,5 @@ body = '''{
     }
 }'''
 
-
-requests.post( url, body )
+event['event']['event_resource']['description'] = 'WHAT?'
+requests.post( url, json.dumps(event) )

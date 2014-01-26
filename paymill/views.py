@@ -48,20 +48,24 @@ class WebhookView( View ):
     @method_decorator(csrf_exempt)
     def dispatch(self, *args, **kwargs):
         return super(WebhookView, self).dispatch(*args, **kwargs)
-        
+
     def post( self, request, *args, **kwargs ):
-        event = json.loads( request.body )['event'] #TODO: Check for edge cases and handle errors
-        event_name = event['event_type'].replace('.','_')
-        
-        #Process Paymill objects
-        f = getattr( self, event_name, None )
-        if f:
-            f( event )
-        
-        signal = get_signal( event_name )
-        signal.send( sender=self, event=event )
-        
-        return HttpResponse( )
+        try:
+            event = json.loads( request.body )
+            event = event['event'] #TODO: Check for edge cases and handle errors
+            event_name = event['event_type'].replace('.','_')
+    
+            #Process Paymill objects
+            f = getattr( self, event_name, None )
+            if f:
+                f( event )
+            signal = get_signal( event_name )
+            signal.send( sender=self, event=event )
+        except Exception as e:
+            print 'ERROR'
+            pass #TODO: Log errors
+            
+        return HttpResponse( ) #Paymill doesn't care if we succeed or fail so we return an empty 200:OK
 
     def client_updated( self, event ):
         c = Client.update_or_create( event['event_resource'] )
