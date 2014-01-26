@@ -1,3 +1,4 @@
+{%load crispy_forms_tags%}
     <!--PAYMILL CODE-->
 
     <script type="text/javascript"> var PAYMILL_PUBLIC_KEY = '{{paymill_key}}'; </script>
@@ -9,9 +10,7 @@
     <input type="hidden" name="payment_description" value="{{description}}">
     <input type="hidden" name="next" value="{{next}}">
     <div class="payment-errors"></div>
-    <ul>
-        {{paymill_form.as_ul}}
-    </ul>
+    {{paymill_form|crispy}}
 
     <script type="text/javascript" charset="utf-8">
         function PaymillResponseHandler(error, result) {

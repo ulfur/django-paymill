@@ -66,6 +66,14 @@ class WebhookView( View ):
     def client_updated( self, event ):
         c = Client.update_or_create( event['event_resource'] )
         c.save( )
+
+    def subscription_created( self, event ):
+        self.subscription_updated( event )
+        
+    def subscription_updated( self, event ):
+        s = Subscription.update_or_create( event['event_resource'] )
+        s.save( )
+
 '''
     {
         "event":{

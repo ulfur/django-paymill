@@ -36,7 +36,7 @@ class Transaction( PaymillModel ):
     @classmethod
     def parse_transaction( t ):
 
-        client, created = Client.objects.get_or_create( external_ref=t['client']['id'], defaults = {
+        client, created = Client.objects.get_or_create( id=t['client']['id'], defaults = {
             'description' : t['client']['description'],
             'created_at'  : datetime.utcfromtimestamp( t['client']['created_at'] ),
             'updated_at'  : datetime.utcfromtimestamp( t['client']['updated_at'] ),
@@ -54,7 +54,7 @@ class Transaction( PaymillModel ):
             #client.subscription =
             client.save( )
 
-        payment, created = Payment.objects.get_or_create( external_ref=t['payment']['id'], defaults = {
+        payment, created = Payment.objects.get_or_create( id=t['payment']['id'], defaults = {
             'expire_month'  : t['payment']['expire_month'],
             'expire_year'   : t['payment']['expire_year'],
             #'country'      :,
@@ -82,7 +82,7 @@ class Transaction( PaymillModel ):
         transaction.amount = t['amount']
         transaction.payment = payment
         transaction.client = client	
-        transaction.external_ref = t['id']
+        transaction.id = t['id']
         transaction.save( )
 
         return transaction

@@ -20,7 +20,6 @@ class Command(BaseCommand):
                 objects = f( )
                 for o in objects:
                     i = klass.update_or_create( o )
-                    i.save( )
                 print ' DONE'
                 return
             except Exception as e:

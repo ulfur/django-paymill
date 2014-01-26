@@ -12,12 +12,12 @@ def paymill_dict( ob ):
     elif isinstance( ob, dict ):
         return ob
     raise TypeError( 'paymill_dict expects either PaymillObject or dict' )
-
+        
 class PaymillModel( models.Model ):
 
     paymill = Pymill( settings.PAYMILL_PRIVATE_KEY )
     
-    external_ref = models.CharField( max_length=100, db_index=True )
+    id = models.CharField( max_length=80, db_index=True, primary_key=True )
     created_at = models.DateTimeField( )
     updated_at = models.DateTimeField( )
     
@@ -25,25 +25,31 @@ class PaymillModel( models.Model ):
         app_label = 'paymill'
         abstract = True
         
-    @property
-    def paymill_id( self ):
-        return self.external_ref
-
     def _update_from_paymill_object( self, ob ):
-        ob = paymill_dict( ob )
-        updated = False
-        for k, v in ob.items():
-            k = 'external_ref' if k == 'id' else k
-            if hasattr( self, k ) and v is not None:
-                ftype = type( self._meta.get_field( k ) )
-                if ftype == models.DateTimeField:
-                    v = datetime.utcfromtimestamp( v )
-                updated = updated or getattr(self,k) != v
-                setattr( self, k, v )
-        return updated
+        ob = paymill_dict( ob )                             # Make sure we have a dict rather than a PaymillObject (from Pymill)
+        updated = False                                     # Nothing has been updated yet
+        for k, v in ob.items( ):                            # Iterate over all the items of the object dict
+            if hasattr( self, k ) and v is not None:        # If this model has this field and the value is not None
+                ftype = type( self._meta.get_field( k ) )   # Let's type check the field
+                if ftype == models.DateTimeField:           # If the field is a DateTimeField ...
+                    v = datetime.utcfromtimestamp( v )      # we know the value must be a datetime object
+                if ftype == models.ForeignKey:              # If the field is a ForeignKey ...
+                    k = '%s_id'%k                          # we know the value is an object-id and we must use the corresponding field name
+                if getattr(self,k) != v:                    # If the current value and the new value differ ...
+                    setattr( self, k, v )                   # set the current value to the new value
+                updated = updated or getattr(self,k) != v   # Have we updated anything yet?
+        return updated                                      # Let the caller know if anything got updated
 
     def _create_paymill_object( self, *args, **kwargs ):
         raise NotImplementedError( '_create_paymill_object not implemented for this class' )
+
+    def save( self, *args, **kwargs ):
+        if not self.id:
+            ob = self._create_paymill_object( )
+            if ob:
+                self.id = ob.id
+                self._update_from_paymill_object( ob )
+        return super(PaymillModel, self).save(*args, **kwargs)
 
     def _delete_paymill_object( self ):
         raise NotImplementedError( '_delete_paymill_object not implemented for this class' )
@@ -51,21 +57,17 @@ class PaymillModel( models.Model ):
     def delete( self, *args, **kwargs ):
         self._delete_paymill_object( )
         return super(PaymillModel, self).delete(*args, **kwargs)
-    
+            
     @classmethod
     def update_or_create( cls, ob ):
         ob = paymill_dict( ob )
+        created = False
         try:
-            o = cls.objects.get( external_ref=ob['id'] )
+            djob = cls.objects.get( id=ob['id'] )
         except:
-            o = cls( )
-        o._update_from_paymill_object( ob )
-        return o
-
-    @classmethod
-    def create( cls, *args, **kwargs ):
-        i = cls( )
-        ob = i._create_paymill_object( *args, **kwargs )
-        i._update_from_paymill_object( ob )
-        
-        return i
+            djob = cls( )
+            created = True
+            
+        djob._update_from_paymill_object( ob )
+        djob.save( )
+        return djob

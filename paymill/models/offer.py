@@ -1,6 +1,8 @@
 #encoding: utf-8
 
 from django.db import models
+from django.utils.text import slugify
+
 from .base import PaymillModel
 
 from .choices import *
@@ -13,21 +15,29 @@ class Offer( PaymillModel ):
     interval = models.CharField( max_length=20, choices=INTERVAL_CHOICES )
     trial_period_days = models.PositiveIntegerField( blank=True )
 
-    def _create_paymill_object( self, name, amount, interval='1 MONTH', currency='EUR' ):
-        return self.paymill.new_offer( amount, name=name, interval=interval, currency=currency )
+    slug = models.SlugField( blank=True, null=True )
+    
+    def _create_paymill_object( self ):
+        return self.paymill.new_offer( self.amount, name=self.name, interval=self.interval, currency=self.currency )
 
     def _delete_paymill_object( self ):
         for subscription in self.subscriptions.all( ):
             subscription.cancel( )
-        self.paymill.delete_offer( self.paymill_id )
+        self.paymill.delete_offer( self.id )
             
-    def save( self, *args, **kwargs ):
-        if not self.paymill_id:
-            ob = self._create_paymill_object( self.name, self.amount, interval=self.interval, currency=self.currency )
-            self._update_from_paymill_object( ob )
-        return super(Offer, self).save(*args, **kwargs)
-        
     def subscribe( self, client ):
-        s = self.subscriptions.create_object( client, self )
+        s = self.subscriptions.create( client=client, payment=client.get_payment(), offer=self )
         s.save( )
         return s
+        
+    def save( self, *args, **kwargs ):
+        if not self.slug:
+            i = 2
+            self.slug = slugify( self.name )
+            while Offer.objects.filter( slug=self.slug ).count()>0:
+                self.slug = slugify( '%s %i'%(self.name,i) )
+                i += 1
+        return super(Offer, self).save(*args, **kwargs)
+
+    def __unicode__( self ):
+        return u'%s (%s)'%( self.name, self.id )

@@ -8,7 +8,7 @@ from django.conf import settings
 from .models import *
 
 class ClientAdmin( admin.ModelAdmin ):
-    list_display = ('email', 'description', 'external_ref', 'created_at')
+    list_display = ('email', 'description', 'id', 'created_at')
     search_fields = ( 'email', )
     fieldsets = (
             (None, {
@@ -19,7 +19,7 @@ class ClientAdmin( admin.ModelAdmin ):
             }),
             ('Advanced', {
                 'fields': (
-                    'external_ref',
+                    'id',
                     ('created_at', 'updated_at'),
                 ),
                 'classes': ('collapse','collapse-closed'),
@@ -29,11 +29,11 @@ class ClientAdmin( admin.ModelAdmin ):
                 'email',
                 'description',
                 
-                'external_ref','created_at','updated_at',
+                'id','created_at','updated_at',
     )
 
 class PaymentAdmin( admin.ModelAdmin ):
-    list_display = ('card_holder', 'last4', 'external_ref', 'created_at')
+    list_display = ('card_holder', 'last4', 'id', 'created_at')
     search_fields = ( 'card_holder', 'last4' )
     fieldsets = (
             (None, {
@@ -46,7 +46,7 @@ class PaymentAdmin( admin.ModelAdmin ):
             }),
             ('Advanced', {
                 'fields': (
-                    'external_ref',
+                    'id',
                     ('created_at', 'updated_at'),
                 ),
                 'classes': ('collapse','collapse-closed'),
@@ -58,30 +58,30 @@ class PaymentAdmin( admin.ModelAdmin ):
                 'expire_month', 'expire_year',
                 'card_holder', 'country',
                 
-                'external_ref', 'client', 'created_at', 'updated_at',
+                'id', 'client', 'created_at', 'updated_at',
     )
 
 class OfferAdmin( admin.ModelAdmin ):
     
-    list_display = ('name', 'amount', 'currency', 'interval', 'external_ref', 'created_at')
+    list_display = ('name', 'slug', 'amount', 'currency', 'interval', 'id', 'created_at')
     search_fields = ( 'name', )
     fieldsets = (
             (None, {
                 'fields': (
-                    'name',
+                    ( 'name', 'slug' ),
                     ('amount', 'currency'),
                     ('interval', 'trial_period_days'),
                 )
             }),
             ('Advanced', {
                 'fields': (
-                    'external_ref',
+                    'id',
                     ('created_at', 'updated_at'),
                 ),
                 'classes': ('collapse','collapse-closed'),
             })
     )
-    readonly_fields = ( 'external_ref', 'created_at', 'updated_at', )
+    readonly_fields = ( 'id', 'slug', 'created_at', 'updated_at', )
 
 class TransactionAdmin( admin.ModelAdmin ):
     list_filter = ( 'status', 'refunded' )
@@ -104,7 +104,7 @@ class TransactionAdmin( admin.ModelAdmin ):
             }),
             ('Advanced', {
                 'fields': (
-                    'external_ref',
+                    'id',
                     ('created_at', 'updated_at'),
                 ),
                 'classes': ('collapse','collapse-closed'),
@@ -119,14 +119,14 @@ class TransactionAdmin( admin.ModelAdmin ):
                         'description', 
                         'refunded', 'refunded_at',
 
-                        'external_ref', 'created_at', 'updated_at',                        
+                        'id', 'created_at', 'updated_at',                        
                     )
 
     def refund( self, request, queryset ):
         p = pymill.Pymill( settings.PAYMILL_PRIVATE_KEY )
         refunded = 0
         for transaction in queryset:
-            refund = p.refund( transaction.external_ref, transaction.origin_amount )['data']
+            refund = p.refund( transaction.id, transaction.origin_amount )['data']
             if refund['response_code'] == 20000:
                 transaction.refunded = True
                 transaction.refunded_at = datetime.utcfromtimestamp( refund['created_at'] )
