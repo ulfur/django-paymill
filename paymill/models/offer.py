@@ -25,7 +25,7 @@ class Offer( PaymillModel ):
             subscription.cancel( )
         self.paymill.delete_offer( self.id )
             
-    def subscribe( self, client ):
+    def subscribe( self, client, start_at=None ):
         s = self.subscriptions.create( client=client, payment=client.get_payment(), offer=self )
         s.save( )
         return s

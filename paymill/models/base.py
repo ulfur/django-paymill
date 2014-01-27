@@ -32,13 +32,17 @@ class PaymillModel( models.Model ):
         ob = paymill_dict( ob )                                 # Make sure we have a dict rather than a PaymillObject (from Pymill)
         updated = False                                         # Nothing has been updated yet
         for k, v in ob.items( ):                                # Iterate over all the items of the object dict
-            if hasattr( self, k ) and v is not None:            # If this model has this field and the value is not None
-                ftype = type( self._meta.get_field( k ) )       # Let's type check the field
-                if ftype == models.DateTimeField:               # If the field is a DateTimeField ...
+            print k, v
+            if v is not None and (hasattr( self, k ) or hasattr( self, '%s_id'%k )):            # If this model has this field and the value is not None
+                ftype = self._meta.get_field( k )               # Let's type check the field
+                if isinstance( ftype, models.DateTimeField):    # If the field is a DateTimeField ...
                     v = datetime.utcfromtimestamp( float(v) )   # we know the value must be a datetime object
                     v = utc.localize( v )
-                if ftype == models.ForeignKey:                  # If the field is a ForeignKey ...
+                if isinstance( ftype, models.ForeignKey ):      # If the field is a ForeignKey ...
                     k = '%s_id'%k                               # we know the value is an object-id and we must use the corresponding field name
+                    if isinstance(v,dict):                      # What we have might not be the actual id of the object
+                        v = v['id']                             # but a dict containing all its' attributes
+                        
                 if getattr(self,k) != v:                        # If the current value and the new value differ ...
                     setattr( self, k, v )                       # set the current value to the new value
                 updated = updated or getattr(self,k) != v       # Have we updated anything yet?
