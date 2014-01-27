@@ -9,8 +9,6 @@ django-paymill also requires, for the time being, [django-crispy-forms](https://
 
 Simply install the app and the requirements and add them to your INSTALLED_APPS:
 
-'''
-
     INSTALLED_APPS = (
         'django.contrib.admin',
         'django.contrib.auth',
@@ -22,17 +20,11 @@ Simply install the app and the requirements and add them to your INSTALLED_APPS:
         'crispy_forms',
         'paymill',
     )
-    
-'''
 
 Then add your Paymill public and private keys to settings:
 
-'''
-
     PAYMILL_PRIVATE_KEY = ''
     PAYMILL_PUBLIC_KEY = ''
-
-'''
 
 And off you go! :)
 
