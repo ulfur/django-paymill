@@ -52,8 +52,8 @@ class WebhookView( View ):
         return super(WebhookView, self).dispatch(*args, **kwargs)
 
     def post( self, request, *args, **kwargs ):
-        print request
         if validate_webhook( kwargs.pop('secret') ):
+            print 'Your secret is safe with me'
             try:
                 event = json.loads( request.body )
                 event = event['event'] #TODO: Check for edge cases and handle errors
