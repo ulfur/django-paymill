@@ -15,6 +15,8 @@ from django.views.decorators.csrf import csrf_exempt
 from .signals import get_signal
 from .models import *
 
+from paymill import validate_webhook
+
 class PaymillTransactionView( View ):
 
     def post( self, request, *args, **kwargs ):
@@ -50,20 +52,22 @@ class WebhookView( View ):
         return super(WebhookView, self).dispatch(*args, **kwargs)
 
     def post( self, request, *args, **kwargs ):
-        try:
-            event = json.loads( request.body )
-            event = event['event'] #TODO: Check for edge cases and handle errors
-            event_name = event['event_type'].replace('.','_')
+        print request
+        if validate_webhook( kwargs.pop('secret') ):
+            try:
+                event = json.loads( request.body )
+                event = event['event'] #TODO: Check for edge cases and handle errors
+                event_name = event['event_type'].replace('.','_')
     
-            #Process Paymill objects
-            f = getattr( self, event_name, None )
-            if f:
-                f( event )
-            signal = get_signal( event_name )
-            signal.send( sender=self, event=event )
-        except Exception as e:
-            print 'ERROR'
-            pass #TODO: Log errors
+                #Process Paymill objects
+                f = getattr( self, event_name, None )
+                if f:
+                    f( event )
+                signal = get_signal( event_name )
+                signal.send( sender=self, event=event )
+            except Exception as e:
+                print 'ERROR'
+                pass #TODO: Log errors
             
         return HttpResponse( ) #Paymill doesn't care if we succeed or fail so we return an empty 200:OK
 
