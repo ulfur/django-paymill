@@ -81,6 +81,10 @@ class WebhookView( View ):
         s = Subscription.update_or_create( event['event_resource'] )
         s.save( )
 
+    def subscription_deleted( self, event ):
+        s = Subscription.objects.get( pk=event['event_resource']['id'] )
+        s.delete( )
+
 '''
     {
         "event":{

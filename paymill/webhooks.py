@@ -34,12 +34,13 @@ def get_webhook( ):
     webhooks = paymill.get_webhooks( )
     for hook in webhooks:
         url = urlparse( hook.url )
-        try:
-            match = resolve( url.path )
-            if match.url_name == 'paymill-webhook':
-                return match.kwargs.get('secret',None)
-        except:
-            pass
+        if url.hostname == settings.PAYMILL_WEBHOOK_HOST:
+            try:
+                match = resolve( url.path )
+                if match.url_name == 'paymill-webhook':
+                    return match.kwargs.get('secret',None)
+            except:
+                pass
     return secret
 
 def install_webhook( ):
