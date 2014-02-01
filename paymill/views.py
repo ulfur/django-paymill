@@ -70,6 +70,16 @@ class WebhookView( View ):
             
         return HttpResponse( ) #Paymill doesn't care if we succeed or fail so we return an empty 200:OK
 
+    def transaction_created( self, event ):
+        t = Transaction.update_or_create( event['event_resource'] )
+        t.save( )
+    
+    def transaction_succeeded( self, event ):
+        self.transaction_succeeded( event ) 
+    
+    def transaction_failed( self, event ):
+        self.transaction_succeeded( event ) 
+
     def client_updated( self, event ):
         c = Client.update_or_create( event['event_resource'] )
         c.save( )
