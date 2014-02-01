@@ -62,6 +62,7 @@ class WebhookView( View ):
                 #Process Paymill objects
                 f = getattr( self, event_name, None )
                 print event_name
+                print event
                 if f:
                     f( event )
                 signal = get_signal( event_name )
@@ -78,10 +79,10 @@ class WebhookView( View ):
         t.save( )
     
     def transaction_succeeded( self, event ):
-        self.transaction_succeeded( event ) 
+        self.transaction_created( event ) 
     
     def transaction_failed( self, event ):
-        self.transaction_succeeded( event ) 
+        self.transaction_created( event ) 
 
     def refund_succeeded( self, event ):
         t = Transaction.update_or_create( event['event_resource']['transaction'] )
