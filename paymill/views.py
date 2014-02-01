@@ -80,6 +80,10 @@ class WebhookView( View ):
     def transaction_failed( self, event ):
         self.transaction_succeeded( event ) 
 
+    def refund_succeeded( self, event ):
+        t = Transaction.update_or_create( event['event_resource']['transaction'] )
+        t.save( )
+
     def client_updated( self, event ):
         c = Client.update_or_create( event['event_resource'] )
         c.save( )
