@@ -1,5 +1,6 @@
 #encoding: utf-8
 
+import pickle
 import json
 import pymill
 
@@ -60,6 +61,7 @@ class WebhookView( View ):
     
                 #Process Paymill objects
                 f = getattr( self, event_name, None )
+                print event_name
                 if f:
                     f( event )
                 signal = get_signal( event_name )
@@ -67,6 +69,7 @@ class WebhookView( View ):
             except Exception as e:
                 print 'ERROR'
                 pass #TODO: Log errors
+            pickle.dump( event, open('%s-%s.log'%(event_name,event['event_resource']['id']), 'wb') )
             
         return HttpResponse( ) #Paymill doesn't care if we succeed or fail so we return an empty 200:OK
 

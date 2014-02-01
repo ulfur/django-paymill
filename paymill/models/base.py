@@ -32,7 +32,6 @@ class PaymillModel( models.Model ):
         ob = paymill_dict( ob )                                 # Make sure we have a dict rather than a PaymillObject (from Pymill)
         updated = False                                         # Nothing has been updated yet
         for k, v in ob.items( ):                                # Iterate over all the items of the object dict
-            print k, v
             if v is not None and (hasattr( self, k ) or hasattr( self, '%s_id'%k )):            # If this model has this field and the value is not None
                 ftype = self._meta.get_field( k )               # Let's type check the field
                 if isinstance( ftype, models.DateTimeField):    # If the field is a DateTimeField ...
