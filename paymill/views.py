@@ -16,7 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .signals import get_signal
 from .models import *
 
-from paymill import validate_webhook
+from paymill.webhooks import validate_webhook
 
 class PaymillTransactionView( View ):
 
@@ -61,8 +61,6 @@ class WebhookView( View ):
     
                 #Process Paymill objects
                 f = getattr( self, event_name, None )
-                print event_name
-                print event
                 if f:
                     f( event )
                 signal = get_signal( event_name )

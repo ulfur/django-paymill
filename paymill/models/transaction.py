@@ -17,7 +17,7 @@ class Transaction( PaymillModel ):
     #refunds
     #invoices
     
-    livemode = models.BooleanField( )
+    livemode = models.BooleanField( default=False )
     origin_amount = models.PositiveIntegerField( )
 
     #preauthorization

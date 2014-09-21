@@ -30,18 +30,19 @@ WEBHOOK_EVENTS = (
 
 def get_webhook( ):
     paymill = Pymill( settings.PAYMILL_PRIVATE_KEY )
-    secret = None
     webhooks = paymill.get_webhooks( )
     for hook in webhooks:
         url = urlparse( hook.url )
-#        if url.hostname == settings.PAYMILL_WEBHOOK_HOST:
         try:
             match = resolve( url.path )
             if match.url_name == 'paymill-webhook':
                 return match.kwargs.get('secret',None)
         except:
             pass
-    return secret
+    return None
+
+def validate_webhook( secret ):
+    return secret == get_webhook( )
 
 def install_webhook( ):
     paymill = Pymill( settings.PAYMILL_PRIVATE_KEY )
@@ -56,4 +57,8 @@ def init_webhook( ):
     if not secret:
         print 'Webhook not found, installing'
         secret = install_webhook( )
+    print 'Webhook ready: %s'%secret
+    
     return secret
+
+    

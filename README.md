@@ -26,6 +26,10 @@ Then add your Paymill public and private keys to settings:
     PAYMILL_PRIVATE_KEY = ''
     PAYMILL_PUBLIC_KEY = ''
 
+For webhooks to work you will need to declare the receiving host:
+
+    PAYMILL_WEBHOOK_HOST = ''
+
 And off you go! :)
 
 (More documentation to follow soon)
