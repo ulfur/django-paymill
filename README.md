@@ -28,7 +28,7 @@ Then add your Paymill public and private keys to settings:
 
 For webhooks to work you will need to declare the receiving host:
 
-    PAYMILL_WEBHOOK_HOST = ''
+    PAYMILL_WEBHOOK_HOST = 'http://mydomain.com/'
 
 And off you go! :)
 
